@@ -187,6 +187,16 @@ private:
         root->child_end = bak;
     }
 public:
+    using value_type = T;
+    using reference = T&;
+    using pointer = T*;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using const_pointer = const T*;
+    using const_reference = const T&;
+    using iterator = depth_first_iterator;
+    using const_iterator = const depth_first_iterator;
+
     tree(const T& val)
         :tree()
     {
@@ -235,8 +245,30 @@ public:
     }
 
     void clear(){
-        p_erase_children(root, foot); //note:no more root and foot
-        p_init(); //recreate them
+        if(root == foot){
+            return;
+        }
+        erase(depth_first_iterator(root));
+    }
+
+    template<class It>
+    auto erase(const It &it){
+        assert(it.n != foot);
+        if(it.n->child_begin){
+            p_erase_children(it.n->child_begin, it.n->child_end);
+        }
+        It bak = (it.n->right)?
+            It(it.n->right):
+            It(it.n->parent);
+        if(it.n->left && it.n->right){
+            it.n->left->right = it.n->right;
+            it.n->right->left = it.n->left;
+        }
+        if(it.n == root){
+            root = foot;
+        }
+        delete it.n;
+        return bak;
     }
 
     template<class X>
@@ -246,7 +278,7 @@ public:
             root->right = foot;
             foot->left = root;
         }
-        this->root->value = std::forward<X>((val));
+        this->root->value = std::forward<X>(val);
         return depth_first_iterator(this->root);
     }
 
@@ -276,7 +308,7 @@ public:
                 it.n->parent->child_begin = tmp;
             }
         }
-        tmp->value = std::forward<X>((val));
+        tmp->value = std::forward<X>(val);
     }
 
     template<class X>
@@ -297,20 +329,20 @@ public:
                 it.n->parent->child_end = tmp;
             }
         }
-        tmp->value = std::forward<X>((val));
+        tmp->value = std::forward<X>(val);
     }
 
     template<class X>
     auto append_child(iterator_base& it, X&& val){
         if(!it.n->child_end){ //iterator has no children
-            return prepend_child(it, std::forward<X>((val)));
+            return prepend_child(it, std::forward<X>(val));
         }
         auto tmp = new node();
         tmp->parent = it.n;
         tmp->left = it.n->child_end;
         it.n->child_end->right = tmp;
         it.n->child_end = tmp;
-        tmp->value = std::forward<X>((val));
+        tmp->value = std::forward<X>(val);
         return depth_first_iterator(tmp);
     }
 
@@ -326,11 +358,11 @@ public:
             tmp->right = it.n->child_begin;
             it.n->child_begin = tmp;
         }
-        tmp->value = std::forward<X>((val));
+        tmp->value = std::forward<X>(val);
         return depth_first_iterator(tmp);
     }
 
-    auto depth_from(const iterator_base &lhs, const iterator_base &rhs){
+    auto depth_from(const iterator_base &lhs, const iterator_base &rhs)const{
         typename iterator_base::difference_type i = 0;
         auto tmp = lhs.n;
         while(tmp->parent){
@@ -341,16 +373,16 @@ public:
         return i;
     }
 
-    bool is_parent_to(iterator_base &lhs, iterator_base &rhs){
+    bool is_parent_to(iterator_base &lhs, iterator_base &rhs)const{
         return lhs.n && rhs.n->parent && rhs.n->parent == lhs.n;
     }
-    bool is_left_to(iterator_base &lhs, iterator_base &rhs){
+    bool is_left_to(iterator_base &lhs, iterator_base &rhs)const{
         return rhs.n && lhs.n->left == rhs.n;
     }
-    bool is_right_to(iterator_base &lhs, iterator_base &rhs){
+    bool is_right_to(iterator_base &lhs, iterator_base &rhs)const{
         return rhs.n && lhs.n->right == rhs.n;
     }
-    bool operator==(const tree<T> &rhs){
+    bool operator==(const tree<T> &rhs)const{
         auto this_it = begin();
         auto this_it_bak = this_it;
         auto it = rhs.begin();
@@ -378,7 +410,7 @@ public:
         }
         return true;
     }
-    bool operator!=(const tree<T> &rhs){
+    bool operator!=(const tree<T> &rhs)const{
         return !(*this == rhs);
     }
 };
