@@ -2,7 +2,6 @@
 #include <cassert>
 #include "k_tree.hpp"
 using tree_ = k_tree::tree<int>;
-
 auto print_it(const tree_::iterator_base &it){
     std::cout<<"iter addr:"<<&it<<std::endl;
     std::cout<<"node addr:"<<it.n<<std::endl;
@@ -45,18 +44,6 @@ int main(){
     }
 
     tree_ copy = tree;
-    it = copy.begin();
-    end = copy.end();
-    std::cout<<"begin"<<std::endl;
-    print_it(it);
-    std::cout<<"end"<<std::endl;
-    print_it(end);
-    while(it != end){
-        std::cout<<"it #"<<std::distance(copy.begin(), it)<<std::endl;
-        print_it(it);
-        it++;
-    }
-
     assert(copy == tree);
     auto rvalue = std::move(copy);
     assert(rvalue == tree);

@@ -18,55 +18,6 @@ class tree{
             child_begin = child_end = nullptr;
         }
     };
-
-    node* root, *foot;
-    void p_init(){
-        root = new node();
-        foot = new node();
-        root->right = foot;
-        foot->left = root;
-    }
-
-    void p_transfer(const tree<T> &rhs, const std::function<void(node *, T&)> &func){
-        auto it = depth_first_iterator(rhs.end());
-        it--;
-        auto prev_dist = depth_from(it, rhs.begin());
-        std::deque<std::pair<node*, size_t>> queue;
-        while(it != rhs.begin()){
-            auto tmp = new node();
-            func(tmp, it.n->value);
-            auto it_dist = depth_from(it, rhs.begin());
-            if(it_dist < prev_dist){ //we moved up
-                tmp->child_begin = queue.back().first;
-                auto bak = tmp->child_begin;
-                while(!queue.empty() && queue.back().second != it_dist){
-                    auto n = queue.back().first;
-                    bak = n;
-                    n->parent = tmp;
-                    queue.pop_back();
-                }
-                tmp->child_end = bak;
-                tmp->right = queue.back().first;
-                queue.back().first->left = tmp;
-            }else if(it_dist == prev_dist && !queue.empty()){
-                tmp->right = queue.back().first;
-                queue.back().first->left = tmp;
-            }
-            queue.emplace_back(tmp, it_dist);//NOTE:reverse order
-            prev_dist = it_dist;
-            it--;
-        }
-        func(root, it.n->value);
-        root->child_begin = queue.back().first;
-        auto bak = root->child_begin;
-        while(!queue.empty()){
-            auto n = queue.back().first;
-            bak = n;
-            n->parent = root;
-            queue.pop_back();
-        }
-        root->child_end = bak;
-    }
 public:
     class iterator_base{
     protected:
@@ -171,7 +122,71 @@ public:
             return copy;
         }
     };
+private:
 
+    node* root, *foot;
+    void p_init(){
+        root = new node();
+        foot = root;
+    }
+
+    void p_erase_children(node *beg, node *end){
+        for(auto n = beg; n!= end;){
+            if(n->child_begin){
+                auto nbeg = n->child_begin;
+                auto nend = n->child_end;
+                p_erase_children(nbeg, nend);
+            }
+            auto bak = n->right;
+            delete n;
+            n = bak;
+        }
+        delete end;
+    }
+    void p_transfer(const tree<T> &rhs){
+        if(rhs.empty()){
+            return;
+        }
+        auto it = depth_first_iterator(rhs.end());
+        it--;
+        auto prev_dist = depth_from(it, rhs.begin());
+        std::deque<std::pair<node*, size_t>> queue;
+        while(it != rhs.begin()){
+            auto tmp = new node();
+            tmp->value = it.n->value;
+            auto it_dist = depth_from(it, rhs.begin());
+            if(it_dist < prev_dist){ //we moved up
+                tmp->child_begin = queue.back().first;
+                auto bak = tmp->child_begin;
+                while(!queue.empty() && queue.back().second != it_dist){
+                    auto n = queue.back().first;
+                    bak = n;
+                    n->parent = tmp;
+                    queue.pop_back();
+                }
+                tmp->child_end = bak;
+                tmp->right = queue.back().first;
+                queue.back().first->left = tmp;
+            }else if(it_dist == prev_dist && !queue.empty()){
+                tmp->right = queue.back().first;
+                queue.back().first->left = tmp;
+            }
+            queue.emplace_back(tmp, it_dist);//NOTE:reverse order
+            prev_dist = it_dist;
+            it--;
+        }
+        set_root(it.n->value);
+        root->child_begin = queue.back().first;
+        auto bak = root->child_begin;
+        while(!queue.empty()){
+            auto n = queue.back().first;
+            bak = n;
+            n->parent = root;
+            queue.pop_back();
+        }
+        root->child_end = bak;
+    }
+public:
     tree(const T& val)
         :tree()
     {
@@ -185,25 +200,38 @@ public:
     tree(const tree<T> &rhs)
         :tree()
     {
-        p_transfer(rhs, [this](node *lsh, T &rhs_val){
-            lsh->value = rhs_val;
-        });
+        p_transfer(rhs);
     }
-    tree(tree<T> &&rhs)
-        :tree()
-    {
-        p_transfer(rhs, [this](node *lsh, T &rhs_val){
-            lsh->value = std::move(rhs_val);
-        });
+    tree(tree<T> &&rhs) {
+        this->root = rhs.root;
+        this->foot = rhs.foot;
+        rhs.root = nullptr;
+        rhs.foot = nullptr;
     }
     tree(){
         p_init();
     }
-    ~tree(){}
+    ~tree(){
+        p_erase_children(root, foot);
+    }
+
+    bool empty()const{
+        return this->root == this->foot;
+    }
+
+    void clear(){
+        p_erase_children(root, foot); //note:no more root and foot
+        p_init(); //recreate them
+    }
 
     template<class X>
     auto set_root(X&& val){
-        this->root->value = std::forward<X>(std::move(val));
+        if(root == foot){
+            foot = new node();
+            root->right = foot;
+            foot->left = root;
+        }
+        this->root->value = std::forward<X>((val));
         return depth_first_iterator(this->root);
     }
 
@@ -233,7 +261,7 @@ public:
                 it.n->parent->child_begin = tmp;
             }
         }
-        tmp->value = std::forward<X>(std::move(val));
+        tmp->value = std::forward<X>((val));
     }
 
     template<class X>
@@ -254,20 +282,20 @@ public:
                 it.n->parent->child_end = tmp;
             }
         }
-        tmp->value = std::forward<X>(std::move(val));
+        tmp->value = std::forward<X>((val));
     }
 
     template<class X>
     auto append_child(iterator_base& it, X&& val){
         if(!it.n->child_end){ //iterator has no children
-            return prepend_child(it, std::forward<X>(std::move(val)));
+            return prepend_child(it, std::forward<X>((val)));
         }
         auto tmp = new node();
         tmp->parent = it.n;
         tmp->left = it.n->child_end;
         it.n->child_end->right = tmp;
         it.n->child_end = tmp;
-        tmp->value = std::forward<X>(std::move(val));
+        tmp->value = std::forward<X>((val));
         return depth_first_iterator(tmp);
     }
 
@@ -283,7 +311,7 @@ public:
             tmp->right = it.n->child_begin;
             it.n->child_begin = tmp;
         }
-        tmp->value = std::forward<X>(std::move(val));
+        tmp->value = std::forward<X>((val));
         return depth_first_iterator(tmp);
     }
 
