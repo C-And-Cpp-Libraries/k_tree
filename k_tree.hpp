@@ -215,6 +215,21 @@ public:
         p_erase_children(root, foot);
     }
 
+    auto& operator=(const tree<T> &rhs){
+        clear();
+        p_transfer(rhs);
+        return *this;
+    }
+
+    auto& operator=(tree<T> &&rhs){
+        p_erase_children(root, foot);
+        this->root = rhs.root;
+        this->foot = rhs.foot;
+        rhs.root = nullptr;
+        rhs.foot = nullptr;
+        return *this;
+    }
+
     bool empty()const{
         return this->root == this->foot;
     }

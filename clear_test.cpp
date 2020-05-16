@@ -97,8 +97,10 @@ int main(){
     bak = alloc_counter;
     {
         auto tree = make_tree();
-        tree_ copy = tree;
-        auto move = std::move(copy);
+        tree_ copy;
+        copy = tree;
+        tree_ move;
+        move = std::move(copy);
     }
     assert(bak == alloc_counter);
 }
