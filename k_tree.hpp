@@ -1,6 +1,7 @@
 #pragma once
 #include <iterator>
 #include <deque>
+#include <cassert>
 #include <functional>
 
 namespace k_tree{
@@ -197,15 +198,10 @@ public:
     using iterator = depth_first_iterator;
     using const_iterator = const depth_first_iterator;
 
-    tree(const T& val)
-        :tree()
-    {
-        set_root(val);
-    }
     tree(T&& val)
         :tree()
     {
-        set_root(val);
+        set_root(std::forward<T>(val));
     }
     tree(const tree<T> &rhs)
         :tree()
@@ -333,7 +329,7 @@ public:
     }
 
     template<class X>
-    auto append_child(iterator_base& it, X&& val){
+    auto append_child(const iterator_base& it, X&& val){
         if(!it.n->child_end){ //iterator has no children
             return prepend_child(it, std::forward<X>(val));
         }
@@ -347,7 +343,7 @@ public:
     }
 
     template<class X>
-    auto prepend_child(iterator_base& it, X&& val){
+    auto prepend_child(const iterator_base& it, X&& val){
         auto tmp = new node();
         tmp->parent = it.n;
         if(!it.n->child_begin){
