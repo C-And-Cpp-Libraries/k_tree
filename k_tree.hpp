@@ -2,6 +2,7 @@
 #include <iterator>
 #include <deque>
 #include <cassert>
+#include <queue>
 #include <functional>
 
 namespace k_tree{
@@ -97,6 +98,7 @@ public:
             return copy;
         }
     };
+
     class depth_first_reverse_iterator:public depth_first_iterator{
     protected:
     public:
@@ -122,6 +124,60 @@ public:
             --(*this);
             return copy;
         }
+    };
+
+    class breadth_first_iterator:public iterator_base {
+        node* end;
+    public:
+        breadth_first_iterator(node* n)
+            :iterator_base(n)
+        {
+            q.emplace(n);
+        }
+        breadth_first_iterator(const iterator_base &rhs)
+            :iterator_base(rhs)
+        {
+            q.emplace(rhs.n);
+        }
+
+        auto& operator++(){
+            if(this->n->right){
+                if(this->n->parent && this->n->right){//it's not foot
+                    this->n = this->n->right;
+                    q.emplace(this->n);
+                    return *this;
+                }else{
+                    this->end = this->n->right; //save foot
+                }
+            }
+            //find first node with children in queue
+            node* top;
+            do{
+                top = q.front();
+                q.pop();
+            }while(!top->child_begin && !q.empty());
+            if(!top->child_begin){
+                this->n = end;
+            }else{
+                this->n = top->child_begin;
+                q.emplace(this->n);
+            }
+            return *this;
+        }
+        auto  operator++(int){
+            auto copy = *this;
+            ++(*this);
+            return copy;
+        }
+        auto& operator+=(unsigned int n){
+            while(n > 0) {
+                ++(*this);
+                --n;
+            }
+            return *this;
+        }
+    private:
+        std::queue<node *> q;
     };
 private:
 
