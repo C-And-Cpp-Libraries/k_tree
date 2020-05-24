@@ -256,9 +256,19 @@ public:
         It bak = (it.n->right)?
             It(it.n->right):
             It(it.n->parent);
-        if(it.n->left && it.n->right){
+        if(it.n->left){
             it.n->left->right = it.n->right;
+        }
+        if(it.n->right){
             it.n->right->left = it.n->left;
+        }
+        if(it.n->parent){
+            if(it.n->parent->child_begin == it.n){
+                it.n->parent->child_begin = it.n->right;
+            }
+            if(it.n->parent->child_end == it.n){
+                it.n->parent->child_end = it.n->left;
+            }
         }
         if(it.n == root){
             root = foot;
