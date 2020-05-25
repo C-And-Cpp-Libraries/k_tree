@@ -2,11 +2,13 @@ cmake_minimum_required(VERSION 3.0.0)
 project(k_tree VERSION 0.1.0)
 
 include(CTest)
+include_directories(include/k_tree)
 enable_testing()
 
-add_executable(copy_move_test copy_move_test.cpp)
-add_executable(clear_test clear_test.cpp)
-add_executable(breadth_wise_test breadth_wise_test.cpp)
+add_executable(copy_move_test tests/copy_move_test.cpp)
+add_executable(clear_test tests/clear_test.cpp)
+add_executable(breadth_wise_test tests/breadth_wise_test.cpp)
+
 add_test(copy_move_test copy_move_test)
 add_test(clear_test clear_test)
 add_test(breadth_wise_test breadth_wise_test)
