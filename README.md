@@ -1,4 +1,6 @@
 # k_tree
+![C/C++ CI](https://github.com/tort-dla-psa/k_tree/workflows/C/C++%20CI/badge.svg)
+
 Library for making tree data structure with arbitrary nubmer of children per node. Inspired by [tree.hh](https://github.com/kpeeters/tree.hh)
 
 # integration
