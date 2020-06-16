@@ -9,26 +9,38 @@ namespace k_tree{
 
 template<class T>
 class tree{
+    /**
+     * Node struct for k_tree
+     * Contains pointers to parent, left and right neighbours,
+     * begin and end of children
+     */
     struct node{
-        node* parent;
-        node* left, *right;
-        node* child_begin, *child_end;
-        T value;
-        node(){
-            parent = nullptr;
-            left = right = nullptr;
-            child_begin = child_end = nullptr;
-        }
+        node* parent; /**< Parent of a node */
+        node* left, /**< Left neighbour of a node */
+            * right; /**< Right neighbour of a node */
+        node* child_begin, /**< Pointer to childrens begin */
+            *child_end; /**< Pointer to childrens end */
+        T value; /**< Templated value of a node */
+        /**
+         * Default constructor
+         * Initializes pointers to other nodes to nullptr
+         */
+        node();
     };
 public:
+    /**
+     * Iterator base class
+     */
     class iterator_base{
     protected:
         friend class tree;
-        iterator_base(node* n) {
-            this->n = n;
-        }
+        /**
+         * Protected constructor
+         * @param n node for an iterator
+         */
+        iterator_base(node* n);
     public:
-        node* n;
+        node* n; /**< Node of an iterator */
         typedef iterator_base self_type;
         typedef T value_type;
         typedef T& reference;
@@ -36,62 +48,65 @@ public:
         typedef size_t difference_type;
         typedef std::forward_iterator_tag iterator_category;
 
-        iterator_base(const iterator_base &rhs) {
-            this->n = rhs.n;
-        }
-        auto& operator*(){
-            return n->value;
-        }
-        const auto& operator*()const{
-            return n->value;
-        }
-        bool operator==(const iterator_base &rhs)const{
-            return this->n == rhs.n;
-        }
-        bool operator!=(const iterator_base &rhs)const{
-            return this->n != rhs.n;
-        }
+        /**
+         * Copy constructor
+         * @param rhs rvalue of a copying
+         */
+        iterator_base(const iterator_base &rhs);
+        /**
+         * Dereference operator
+         * @return reference of a node value
+         */
+        auto& operator*();
+        /**
+         * Const-dereference operator
+         * @return const-reference of a node value
+         */
+        const auto& operator*()const;
+        /**
+         * Equal operator
+         * @param rhs rvalue to compare to
+         */
+        bool operator==(const iterator_base &rhs)const;
+        /**
+         * Non-equal operator
+         * @param rhs rvalue to compare to
+         */
+        bool operator!=(const iterator_base &rhs)const;
     };
 
+    /**
+     * Depth-first iterator class
+     * First, it iterates through node's children recursively from left to right.
+     * Second, it iterates through node's neighbours recursively from left to right.
+     */
     class depth_first_iterator:public iterator_base{
-    protected:
     public:
-        depth_first_iterator(node* n)
-            :iterator_base(n)
-        {}
-        depth_first_iterator(const iterator_base &rhs)
-            :iterator_base(rhs)
-        {}
-        auto& operator++(){
-            if(this->n->child_begin){
-                this->n = this->n->child_begin;
-            }else{
-                while(!this->n->right) {
-                    this->n = this->n->parent;
-                    if(!this->n){
-                        return *this;
-                    }
-                }
-                this->n = this->n->right;
-            }
-            return *this;
-        }
+        /**
+         * Constructor
+         * @param n node for an iterator
+         */
+        depth_first_iterator(node* n);
+        /**
+         * Copy Constructor
+         * @param rhs rvalue of a copying
+         */
+        depth_first_iterator(const iterator_base &rhs);
+        /**
+         * Increment operator
+         * @return reference to current iterator
+         */
+        auto& operator++();
         auto operator++(int){
             auto copy = *this;
             ++(*this);
             return copy;
         }
-        auto& operator--(){
-            if(this->n->left){
-                this->n = this->n->left;
-                while(this->n->child_end){
-                    this->n = this->n->child_end;
-                }
-            }else{
-                this->n = this->n->parent;
-            }
-            return *this;
-        }
+        /**
+         * Decrement operator
+         * @return reference to current iterator
+         */
+        auto& operator--();
         auto operator--(int){
             auto copy = *this;
             --(*this);
@@ -99,6 +114,11 @@ public:
         }
     };
 
+    /**
+     * Depth-first reverse iterator class
+     * First, it iterates through node's children recursively from right to left.
+     * Second, it iterates through node's neighbours recursively from right to left.
+     */
     class depth_first_reverse_iterator:public depth_first_iterator{
     protected:
     public:
@@ -108,6 +128,10 @@ public:
         depth_first_reverse_iterator(const iterator_base &rhs)
             :depth_first_iterator(rhs)
         {}
+        /**
+         * Increment operator
+         * @return reference to current iterator
+         */
         auto& operator++(){
             return depth_first_iterator::operator--();
         }
@@ -116,6 +140,10 @@ public:
             ++(*this);
             return copy;
         }
+        /**
+         * Decrement operator
+         * @return reference to current iterator
+         */
         auto& operator--(){
             return depth_first_iterator::operator++();
         }
@@ -140,6 +168,10 @@ public:
             q.emplace(rhs.n);
         }
 
+        /**
+         * Increment operator
+         * @return reference to current iterator
+         */
         auto& operator++(){
             if(this->n->right){
                 if(this->n->parent && this->n->right){//it's not foot
@@ -476,5 +508,84 @@ public:
         return !(*this == rhs);
     }
 };
+
+//*** node ***
+template<class T>
+tree<T>::node::node() {
+    parent = nullptr;
+    left = right = nullptr;
+    child_begin = child_end = nullptr;
+}
+
+//*** iterator_base ***
+template<class T>
+tree<T>::iterator_base::iterator_base(node* n) {
+    this->n = n;
+}
+
+template<class T>
+tree<T>::iterator_base::iterator_base(const iterator_base &rhs) {
+    this->n = rhs.n;
+}
+
+template<class T>
+auto& tree<T>::iterator_base::operator*(){
+    return n->value;
+}
+
+template<class T>
+const auto& tree<T>::iterator_base::operator*()const{
+    return n->value;
+}
+
+template<class T>
+bool tree<T>::iterator_base::operator==(const iterator_base &rhs)const{
+    return this->n == rhs.n;
+}
+
+template<class T>
+bool tree<T>::iterator_base::operator!=(const iterator_base &rhs)const{
+    return this->n != rhs.n;
+}
+
+//*** depth_first_iterator ***
+template<class T>
+tree<T>::depth_first_iterator::depth_first_iterator(node* n)
+    :iterator_base(n)
+{}
+
+template<class T>
+tree<T>::depth_first_iterator::depth_first_iterator(const iterator_base &rhs)
+    :iterator_base(rhs)
+{}
+
+template<class T>
+auto& tree<T>::depth_first_iterator::operator++(){
+    if(this->n->child_begin){
+        this->n = this->n->child_begin;
+    }else{
+        while(!this->n->right) {
+            this->n = this->n->parent;
+            if(!this->n){
+                return *this;
+            }
+        }
+        this->n = this->n->right;
+    }
+    return *this;
+}
+
+template<class T>
+auto& tree<T>::depth_first_iterator::operator--(){
+    if(this->n->left){
+        this->n = this->n->left;
+        while(this->n->child_end){
+            this->n = this->n->child_end;
+        }
+    }else{
+        this->n = this->n->parent;
+    }
+    return *this;
+}
 
 };
