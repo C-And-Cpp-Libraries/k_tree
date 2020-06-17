@@ -14,10 +14,22 @@ namespace algo{
  * @param lhs iterator to compute depth-distance.
  * @param rhs target iterator.
  * @return depth-distance from lsh to rhs.
- *      Zero if iterators are not parent-related.
+ *      Zero if iterators are not parent-related or rhs is down from lhs.
+ *      Positive if rhs is up from lhs.
  */
 template<class It>
-static typename It::difference_type depth_from(const It &lhs, const It &rhs);//TODO:move to alg
+static typename It::difference_type depth_between(const It &lhs, const It &rhs);//TODO:move to alg
+/**
+ * Gives breadth-distance between two iterators.
+ * Counting from lhs to rhs, going right.
+ * @param lhs iterator to compute breadth-distance.
+ * @param rhs target iterator.
+ * @return breadth-distance from lsh to rhs.
+ *      Zero if iterators are not breadth-related or rsh is left from lhs.
+ *      Positive if rsh is right from lhs.
+ */
+template<class It>
+static typename It::difference_type breadth_between(const It &lhs, const It &rhs);//TODO:move to alg
 /**
  * Checks if lhs is parent from rhs
  * Counting from lhs to rhs, going up.
@@ -263,12 +275,12 @@ private:
         }
         auto it = depth_first_iterator(rhs.end());
         it--;
-        auto prev_dist = algo::depth_from(it, rhs.begin());
+        auto prev_dist = algo::depth_between(it, rhs.begin());
         std::deque<std::pair<node*, size_t>> queue;
         while(it != rhs.begin()){
             auto tmp = new node();
             tmp->value = it.n->value;
-            auto it_dist = algo::depth_from(it, rhs.begin());
+            auto it_dist = algo::depth_between(it, rhs.begin());
             if(it_dist < prev_dist){ //we moved up
                 tmp->child_begin = queue.back().first;
                 auto bak = tmp->child_begin;
@@ -803,7 +815,7 @@ bool tree<T>::operator!=(const tree<T> &rhs)const{
 }
 
 template<class It>
-typename It::difference_type algo::depth_from(const It &lhs, const It &rhs){
+typename It::difference_type algo::depth_between(const It &lhs, const It &rhs){
     typename It::difference_type i = 0;
     auto tmp = lhs.n;
     while(tmp->parent){
@@ -816,18 +828,31 @@ typename It::difference_type algo::depth_from(const It &lhs, const It &rhs){
 }
 
 template<class It>
+typename It::difference_type algo::breadth_between(const It &lhs, const It &rhs){
+    typename It::difference_type i = 0;
+    auto tmp = lhs.n;
+    while(tmp->right){
+        tmp = tmp->right;
+        i++;
+    }
+    if(tmp != rhs.n)
+        return 0;
+    return i;
+}
+
+template<class It>
 bool algo::is_parent_to(const It &lhs, const It &rhs){
-    return algo::depth_from(lhs, rhs) != 0;
+    return algo::depth_between(lhs, rhs) != 0;
 }
 
 template<class It>
 bool algo::is_left_to(const It &lhs, const It &rhs){
-    return rhs.n && lhs.n->left == rhs.n;
+    return algo::breadth_between(rhs, lhs) != 0;
 }
 
 template<class It>
 bool algo::is_right_to(const It &lhs, const It &rhs){
-    return rhs.n && lhs.n->right == rhs.n;
+    return algo::breadth_between(lhs, rhs) != 0;
 }
 
 };
