@@ -375,6 +375,11 @@ public:
      */
     auto end()const;
     /**
+     * Returns number of nodes in a tree
+     * @return size of a tree, difference of begin() and end()
+     */
+    size_type size()const;
+    /**
      * Inserts value left from given iterator (left neighbour)
      * @param it iterator for relative left insert
      * @param val rhs of inserting, copy or move
@@ -676,6 +681,17 @@ auto tree<T>::end()const{
     return depth_first_iterator(this->foot);
 }
 
+template<class T>
+typename tree<T>::size_type tree<T>::size()const{
+     decltype(this->size()) result=0;
+     auto it = begin();
+     while(it != end()){
+         it++;
+         result++;
+     }
+     return result;
+}
+
 template<class T> template<class X>
 auto tree<T>::insert_left(iterator_base& it, X&& val){
     auto tmp = new node();
@@ -687,6 +703,9 @@ auto tree<T>::insert_left(iterator_base& it, X&& val){
     }else{
         it.n->left = tmp;
         tmp->right = it.n;
+    }
+    if(it.n == root){
+        this->root = tmp;
     }
     tmp->parent = it.n->parent;
     if(it.n->parent){
