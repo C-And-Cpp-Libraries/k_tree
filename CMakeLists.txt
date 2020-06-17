@@ -25,10 +25,12 @@ include(CTest)
 include_directories(include/k_tree)
 enable_testing()
 
+add_executable(random_tree_test tests/random_test.cpp)
 add_executable(copy_move_test tests/copy_move_test.cpp)
 add_executable(clear_test tests/clear_test.cpp)
 add_executable(breadth_wise_test tests/breadth_wise_test.cpp)
 
+add_test(random_tree_test random_tree_test)
 add_test(copy_move_test copy_move_test)
 add_test(clear_test clear_test)
 add_test(breadth_wise_test breadth_wise_test)
