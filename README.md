@@ -12,6 +12,7 @@ You can add as many roots, hodes and their children as you want and then iterate
 
 # Integration
 It's templated header-only library due to reasons, so basically all you need to do is:
+
 ```sh
 #in your project dir
 git submodule add https://github.com/tort-dla-psa/k_tree.git submodules/k_tree
@@ -24,9 +25,11 @@ include_directories(submodules/k_tree/include)
 //in your code
 #include "k_tree/k_tree.hpp"
 ```
+
 Or just copy and include k_tree.hpp in your code.
 
 # Usage
+
 ```c++
 k_tree::tree<int> t; //create empty tree
 auto it = t.set_root(0); //set it's root (obviously) and save depth-first iterator to it
@@ -40,6 +43,7 @@ t.prepend_child(it, 4);
       4-3
 */
 ```
+
 There are already a good examples in [tests](tests) directory.
 
 # Used in
