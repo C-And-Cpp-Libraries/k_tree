@@ -17,8 +17,8 @@ namespace algo{
  *      Zero if iterators are not parent-related or rhs is down from lhs.
  *      Positive if rhs is up from lhs.
  */
-template<class It>
-static typename It::difference_type depth_between(const It &lhs, const It &rhs);//TODO:move to alg
+template<class It, class Ret = typename It::difference_type>
+static inline Ret depth_between(const It &lhs, const It &rhs);
 /**
  * Gives breadth-distance between two iterators.
  * Counting from lhs to rhs, going right.
@@ -28,8 +28,8 @@ static typename It::difference_type depth_between(const It &lhs, const It &rhs);
  *      Zero if iterators are not breadth-related or rsh is left from lhs.
  *      Positive if rsh is right from lhs.
  */
-template<class It>
-static typename It::difference_type breadth_between(const It &lhs, const It &rhs);//TODO:move to alg
+template<class It, class Ret = typename It::difference_type>
+static inline Ret breadth_between(const It &lhs, const It &rhs);
 /**
  * Checks if lhs is parent from rhs
  * Counting from lhs to rhs, going up.
@@ -39,7 +39,7 @@ static typename It::difference_type breadth_between(const It &lhs, const It &rhs
  *      "false" otherwise.
  */
 template<class It>
-static bool is_parent_to(const It &lhs, const It &rhs);//TODO:move to alg
+static inline bool is_parent_to(const It &lhs, const It &rhs);
 /**
  * Checks if lhs is left from rhs
  * Counting from lhs to rhs, going right.
@@ -49,7 +49,7 @@ static bool is_parent_to(const It &lhs, const It &rhs);//TODO:move to alg
  *      "false" otherwise.
  */
 template<class It>
-static bool is_left_to(const It &lhs, const It &rhs);//TODO:move to alg
+static inline bool is_left_to(const It &lhs, const It &rhs);
 /**
  * Checks if lhs is right from rhs
  * Counting from lhs to rhs, going left.
@@ -59,7 +59,7 @@ static bool is_left_to(const It &lhs, const It &rhs);//TODO:move to alg
  *      "false" otherwise.
  */
 template<class It>
-static bool is_right_to(const It &lhs, const It &rhs);//TODO:move to alg
+static inline bool is_right_to(const It &lhs, const It &rhs);
 };
 
 template<class T>
@@ -148,25 +148,25 @@ public:
          */
         depth_first_iterator(const iterator_base &rhs);
         /**
-         * Increment operator
+         * Prefix increment operator
          * @return reference to current iterator
          */
-        auto& operator++();
-        auto operator++(int){
-            auto copy = *this;
-            ++(*this);
-            return copy;
-        }
+        depth_first_iterator& operator++();
         /**
-         * Decrement operator
+         * Postfix increment operator
+         * @return copy of current iterator
+         */
+        depth_first_iterator operator++(int);
+        /**
+         * Prefix decrement operator
          * @return reference to current iterator
          */
-        auto& operator--();
-        auto operator--(int){
-            auto copy = *this;
-            --(*this);
-            return copy;
-        }
+        depth_first_iterator& operator--();
+        /**
+         * Postfix decrement operator
+         * @return copy of current iterator
+         */
+        depth_first_iterator operator--(int);
     };
 
     /**
@@ -188,25 +188,25 @@ public:
          */
         depth_first_reverse_iterator(const iterator_base &rhs);
         /**
-         * Increment operator
+         * Prefix increment operator
          * @return reference to current iterator
          */
-        auto& operator++();
-        auto operator++(int){
-            auto copy = *this;
-            ++(*this);
-            return copy;
-        }
+        depth_first_reverse_iterator& operator++();
         /**
-         * Decrement operator
+         * Postfix increment operator
+         * @return copy of current iterator
+         */
+        depth_first_reverse_iterator operator++(int);
+        /**
+         * Prefix decrement operator
          * @return reference to current iterator
          */
-        auto& operator--();
-        auto operator--(int){
-            auto copy = *this;
-            --(*this);
-            return copy;
-        }
+        depth_first_reverse_iterator& operator--();
+        /**
+         * Postfix decrement operator
+         * @return copy of current iterator
+         */
+        depth_first_reverse_iterator operator--(int);
     };
 
     /**
@@ -228,29 +228,32 @@ public:
          */
         breadth_first_iterator(const iterator_base &rhs);
         /**
-         * Increment operator
+         * Prefix increment operator
          * @return reference to current iterator
          */
-        auto& operator++();
-        auto  operator++(int){
-            auto copy = *this;
-            ++(*this);
-            return copy;
-        }
-        auto& operator+=(unsigned int n){
-            while(n > 0) {
-                ++(*this);
-                --n;
-            }
-            return *this;
-        }
+        breadth_first_iterator& operator++();
+        /**
+         * Postfix increment operator
+         * @return copy of current iterator
+         */
+        breadth_first_iterator operator++(int);
+        /**
+         * Prefix decrement operator
+         * @return reference to current iterator
+         */
+        breadth_first_iterator& operator--() = delete; //not impl
+        /**
+         * Postfix decrement operator
+         * @return copy of current iterator
+         */
+        breadth_first_iterator operator--(int) = delete; //not impl
     private:
         std::queue<node *> q;
     };
 private:
 
-    node* root, /** Begin of a tree, has value */
-        *foot; /** End of a tree, hasn't value */
+    node* root, /**< Begin of a tree, has value */
+        *foot; /**< End of a tree, hasn't value */
     void p_init(){
         root = new node();
         foot = root;
@@ -348,15 +351,16 @@ public:
      * Assign copy operator, clears current tree,
      * copies rhs structure and values
      */
-    auto& operator=(const tree<T> &rhs);
+    tree& operator=(const tree<T> &rhs);
     /**
      * Assign move operator, clears current tree,
      * copies rhs structure and values.
      * NOTE: move assigment is far more optimized
      */
-    auto& operator=(tree<T> &&rhs);
+    tree& operator=(tree<T> &&rhs);
     /**
-     * Checks if root's address equals foot's address, hence tree is empty.
+     * Checks if tree is empty.
+     * If root's address equals foot's address, return true.
      */
     bool empty()const;
     /**
@@ -364,28 +368,32 @@ public:
      */
     void clear();
     /**
-     * Erases given iterator of any iterator-based class
+     * Erases given node and all it's children
      * @param it iterator to erase
      * @return next iterator of given iterator
      */
     template<class It>
-    auto erase(const It &it);
+    It erase(const It &it);
     /**
-     * Sets root value, copy or move.
-     * If tree is empty, inserts root node.
+     * Sets root value, copy or move
+     * If tree is empty, inserts root node
+     * @param val value to set root to, copy or move
+     * @return iterator to root
      */
-    template<class X>
-    auto set_root(X&& val);
+    template<class X, class It=depth_first_iterator>
+    It set_root(X&& val);
     /**
-     * Returns depth-first iterator to root of a tree
-     * @return depth-first iterator to root of a tree
+     * Returns iterator to root of a tree
+     * @return iterator to root of a tree
      */
-    auto begin()const;
+    template<class It=depth_first_iterator>
+    It begin()const;
     /**
-     * Returns depth-first iterator to foot of a tree
-     * @return depth-first iterator to foot of a tree
+     * Returns iterator to foot of a tree
+     * @return iterator to foot of a tree
      */
-    auto end()const;
+    template<class It=depth_first_iterator>
+    It end()const;
     /**
      * Returns number of nodes in a tree
      * @return size of a tree, difference of begin() and end()
@@ -396,31 +404,31 @@ public:
      * @param it iterator for relative left insert
      * @param val rhs of inserting, copy or move
      */
-    template<class X>
-    auto insert_left(iterator_base& it, X&& val);
+    template<class It, class X>
+    It insert_left(It& it, X&& val);
     /**
      * Inserts value right from given iterator (right neighbour)
      * @param it iterator for relative right insert
      * @param val rhs of inserting, copy or move
      */
-    template<class X>
-    auto insert_right(iterator_base& it, X&& val);
+    template<class It, class X>
+    It insert_right(It& it, X&& val);
     /**
      * Appends child with value to a given iterator (right-most child)
      * @param it iterator for child append
      * @param val rhs for appending, copy or move
-     * @return depth-first iterator of resulting child
+     * @return iterator to resulting child
      */
-    template<class X>
-    auto append_child(const iterator_base& it, X&& val);
+    template<class It, class X>
+    It append_child(It& it, X&& val);
     /**
      * Prepends child with value to a given iterator (left-most child)
      * @param it iterator for child prepend
      * @param val rhs for prepending, copy or move
-     * @return depth-first iterator of resulting child
+     * @return iterator to resulting child
      */
-    template<class X>
-    auto prepend_child(const iterator_base& it, X&& val);
+    template<class It, class X>
+    It prepend_child(It& it, X&& val);
     /**
      * Equals operator
      * Checks if rhs structure and values are equeal to current tree.
@@ -479,17 +487,20 @@ bool tree<T>::iterator_base::operator!=(const iterator_base &rhs)const{
 
 //*** depth_first_iterator ***
 template<class T>
-tree<T>::depth_first_iterator::depth_first_iterator(node* n)
+tree<T>::depth_first_iterator::
+    depth_first_iterator(node* n)
     :iterator_base(n)
 {}
 
 template<class T>
-tree<T>::depth_first_iterator::depth_first_iterator(const iterator_base &rhs)
+tree<T>::depth_first_iterator::
+    depth_first_iterator(const iterator_base &rhs)
     :iterator_base(rhs)
 {}
 
 template<class T>
-auto& tree<T>::depth_first_iterator::operator++(){
+typename tree<T>::depth_first_iterator&
+tree<T>::depth_first_iterator::operator++(){
     if(this->n->child_begin){
         this->n = this->n->child_begin;
     }else{
@@ -505,7 +516,8 @@ auto& tree<T>::depth_first_iterator::operator++(){
 }
 
 template<class T>
-auto& tree<T>::depth_first_iterator::operator--(){
+typename tree<T>::depth_first_iterator&
+tree<T>::depth_first_iterator::operator--(){
     if(this->n->left){
         this->n = this->n->left;
         while(this->n->child_end){
@@ -517,6 +529,23 @@ auto& tree<T>::depth_first_iterator::operator--(){
     return *this;
 }
 
+template<class T>
+typename tree<T>::depth_first_iterator
+tree<T>::depth_first_iterator::operator++(int){
+    auto copy = *this;
+    ++(*this);
+    return copy;
+}
+
+template<class T>
+typename tree<T>::depth_first_iterator
+tree<T>::depth_first_iterator::operator--(int){
+    auto copy = *this;
+    --(*this);
+    return copy;
+}
+
+//*** depth_first_reverse_iterator ***
 template<class T>
 tree<T>::depth_first_reverse_iterator::
     depth_first_reverse_iterator(node* n)
@@ -530,17 +559,37 @@ tree<T>::depth_first_reverse_iterator::
 {}
 
 template<class T>
-auto& tree<T>::depth_first_reverse_iterator::operator++(){
+typename tree<T>::depth_first_reverse_iterator&
+tree<T>::depth_first_reverse_iterator::operator++(){
     return depth_first_iterator::operator--();
 }
 
 template<class T>
-auto& tree<T>::depth_first_reverse_iterator::operator--(){
-    return depth_first_iterator::operator--();
+typename tree<T>::depth_first_reverse_iterator&
+tree<T>::depth_first_reverse_iterator::operator--(){
+    return depth_first_iterator::operator++();
 }
 
 template<class T>
-tree<T>::breadth_first_iterator::breadth_first_iterator(node* n)
+typename tree<T>::depth_first_reverse_iterator
+tree<T>::depth_first_reverse_iterator::operator++(int){
+    auto copy = *this;
+    ++(*this);
+    return copy;
+}
+
+template<class T>
+typename tree<T>::depth_first_reverse_iterator
+tree<T>::depth_first_reverse_iterator::operator--(int){
+    auto copy = *this;
+    --(*this);
+    return copy;
+}
+
+/*** breadth_first_iterator ***/
+template<class T>
+tree<T>::breadth_first_iterator::
+    breadth_first_iterator(node* n)
     :iterator_base(n)
 {
     q.emplace(n);
@@ -555,7 +604,8 @@ tree<T>::breadth_first_iterator::
 }
 
 template<class T>
-auto& tree<T>::breadth_first_iterator::operator++(){
+typename tree<T>::breadth_first_iterator&
+tree<T>::breadth_first_iterator::operator++(){
     if(this->n->right){
         if(this->n->parent && this->n->right){//it's not foot
             this->n = this->n->right;
@@ -580,6 +630,15 @@ auto& tree<T>::breadth_first_iterator::operator++(){
     return *this;
 }
 
+template<class T>
+typename tree<T>::breadth_first_iterator
+tree<T>::breadth_first_iterator::operator++(int){
+    auto copy = *this;
+    ++(*this);
+    return copy;
+}
+
+/*** tree ***/
 template<class T>
 tree<T>::tree(T&& val)
     :tree()
@@ -613,14 +672,14 @@ tree<T>::~tree(){
 }
 
 template<class T>
-auto& tree<T>::operator=(const tree<T> &rhs){
+tree<T>& tree<T>::operator=(const tree<T> &rhs){
     clear();
     p_transfer(rhs);
     return *this;
 }
 
 template<class T>
-auto& tree<T>::operator=(tree<T> &&rhs){
+tree<T>& tree<T>::operator=(tree<T> &&rhs){
     p_erase_children(root, foot);
     this->root = rhs.root;
     this->foot = rhs.foot;
@@ -643,7 +702,7 @@ void tree<T>::clear(){
 }
 
 template<class T> template<class It>
-auto tree<T>::erase(const It &it){
+It tree<T>::erase(const It &it){
     assert(it.n != foot);
     if(it.n->child_begin){
         p_erase_children(it.n->child_begin, it.n->child_end);
@@ -672,25 +731,25 @@ auto tree<T>::erase(const It &it){
     return bak;
 }
 
-template<class T> template<class X>
-auto tree<T>::set_root(X&& val){
+template<class T> template<class X, class It>
+It tree<T>::set_root(X&& val){
     if(root == foot){
         foot = new node();
         root->right = foot;
         foot->left = root;
     }
     this->root->value = std::forward<X>(val);
-    return depth_first_iterator(this->root);
+    return It(this->root);
 }
 
-template<class T>
-auto tree<T>::begin()const{
-    return depth_first_iterator(this->root);
+template<class T> template<class It>
+It tree<T>::begin()const{
+    return It(this->root);
 }
 
-template<class T>
-auto tree<T>::end()const{
-    return depth_first_iterator(this->foot);
+template<class T> template<class It>
+It tree<T>::end()const{
+    return It(this->foot);
 }
 
 template<class T>
@@ -704,8 +763,8 @@ typename tree<T>::size_type tree<T>::size()const{
      return result;
 }
 
-template<class T> template<class X>
-auto tree<T>::insert_left(iterator_base& it, X&& val){
+template<class T> template<class It, class X>
+It tree<T>::insert_left(It& it, X&& val){
     auto tmp = new node();
     if(it.n->left){
         tmp->left = it.n->left;
@@ -726,10 +785,11 @@ auto tree<T>::insert_left(iterator_base& it, X&& val){
         }
     }
     tmp->value = std::forward<X>(val);
+    return It(tmp);
 }
 
-template<class T> template<class X>
-auto tree<T>::insert_right(iterator_base& it, X&& val){
+template<class T> template<class It, class X>
+It tree<T>::insert_right(It& it, X&& val){
     auto tmp = new node();
     if(it.n->right){
         tmp->right = it.n->right;
@@ -747,10 +807,11 @@ auto tree<T>::insert_right(iterator_base& it, X&& val){
         }
     }
     tmp->value = std::forward<X>(val);
+    return It(tmp);
 }
 
-template<class T> template<class X>
-auto tree<T>::append_child(const iterator_base& it, X&& val){
+template<class T> template<class It, class X>
+It tree<T>::append_child(It& it, X&& val){
     if(!it.n->child_end){ //iterator has no children
         return prepend_child(it, std::forward<X>(val));
     }
@@ -760,11 +821,11 @@ auto tree<T>::append_child(const iterator_base& it, X&& val){
     it.n->child_end->right = tmp;
     it.n->child_end = tmp;
     tmp->value = std::forward<X>(val);
-    return depth_first_iterator(tmp);
+    return It(tmp);
 }
 
-template<class T> template<class X>
-auto tree<T>::prepend_child(const iterator_base& it, X&& val){
+template<class T> template<class It, class X>
+It tree<T>::prepend_child(It& it, X&& val){
     auto tmp = new node();
     tmp->parent = it.n;
     if(!it.n->child_begin){
@@ -776,11 +837,12 @@ auto tree<T>::prepend_child(const iterator_base& it, X&& val){
         it.n->child_begin = tmp;
     }
     tmp->value = std::forward<X>(val);
-    return depth_first_iterator(tmp);
+    return It(tmp);
 }
 
 template<class T>
 bool tree<T>::operator==(const tree<T> &rhs)const{
+    using namespace algo;
     auto this_it = begin();
     auto this_it_bak = this_it;
     auto it = rhs.begin();
@@ -792,9 +854,9 @@ bool tree<T>::operator==(const tree<T> &rhs)const{
         if(*it != *this_it){
             return false;
         }
-        if(algo::is_parent_to(it, it_bak) != algo::is_parent_to(this_it, this_it_bak) ||
-            algo::is_left_to(it, it_bak) != algo::is_left_to(this_it, this_it_bak) ||
-            algo::is_right_to(it, it_bak) != algo::is_right_to(this_it, this_it_bak))
+        if(is_parent_to(it, it_bak) != is_parent_to(this_it, this_it_bak)||
+            is_left_to(it, it_bak) != is_left_to(this_it, this_it_bak)||
+            is_right_to(it, it_bak) != is_right_to(this_it, this_it_bak))
         {
             return false;
         }
@@ -814,8 +876,8 @@ bool tree<T>::operator!=(const tree<T> &rhs)const{
     return !(*this == rhs);
 }
 
-template<class It>
-typename It::difference_type algo::depth_between(const It &lhs, const It &rhs){
+template<class It, class Ret>
+Ret algo::depth_between(const It &lhs, const It &rhs){
     typename It::difference_type i = 0;
     auto tmp = lhs.n;
     while(tmp->parent){
@@ -827,8 +889,8 @@ typename It::difference_type algo::depth_between(const It &lhs, const It &rhs){
     return i;
 }
 
-template<class It>
-typename It::difference_type algo::breadth_between(const It &lhs, const It &rhs){
+template<class It, class Ret>
+Ret algo::breadth_between(const It &lhs, const It &rhs){
     typename It::difference_type i = 0;
     auto tmp = lhs.n;
     while(tmp->right){
