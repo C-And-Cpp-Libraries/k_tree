@@ -44,6 +44,8 @@ public:
         bfs_iterator(bfs_iterator &&it);
         bfs_iterator& operator++();
         bfs_iterator operator++(int);
+        bfs_iterator& operator--();
+        bfs_iterator operator--(int);
     };
 
     class dfs_iterator:public iterator_base{
@@ -53,6 +55,8 @@ public:
         dfs_iterator(const iterator_base &it);
         dfs_iterator& operator++();
         dfs_iterator operator++(int);
+        dfs_iterator& operator--();
+        dfs_iterator operator--(int);
     };
 
     using default_it = bfs_iterator;
@@ -155,6 +159,28 @@ auto graph<ValT>::bfs_iterator::operator++(int)
     ++(*this);
     return copy;
 }
+
+template<class ValT>
+auto graph<ValT>::bfs_iterator::operator--()
+    ->typename graph<ValT>::bfs_iterator&
+{
+    m_nodes_idx--;
+    if(m_nodes_idx >= m_nodes.size()){
+        throw std::out_of_range("empty iterator decremented");
+    }
+    this->m_node = *(m_nodes.begin()+m_nodes_idx);
+    return *this;
+}
+
+template<class ValT>
+auto graph<ValT>::bfs_iterator::operator--(int)
+    ->typename graph<ValT>::bfs_iterator
+{
+    auto copy = *this;
+    --(*this);
+    return copy;
+}
+
 
 template<class ValT>
 graph<ValT>::graph(){
