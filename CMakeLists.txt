@@ -23,12 +23,15 @@ endif (DOXYGEN_FOUND)
 
 include(CTest)
 include_directories(include/k_tree)
+include_directories(include/graph)
 enable_testing()
 
-add_executable(random_tree_test tests/random_test.cpp)
-add_executable(copy_move_test tests/copy_move_test.cpp)
-add_executable(clear_test tests/clear_test.cpp)
-add_executable(breadth_wise_test tests/breadth_wise_test.cpp)
+add_executable(tree_random_test tests/k_tree/random_test.cpp)
+add_executable(tree_copy_move_test tests/k_tree/copy_move_test.cpp)
+add_executable(tree_clear_test tests/k_tree/clear_test.cpp)
+add_executable(tree_breadth_wise_test tests/k_tree/breadth_wise_test.cpp)
+
+add_executable(graph_test tests/graph/test.cpp)
 
 add_test(random_tree_test random_tree_test)
 add_test(copy_move_test copy_move_test)
